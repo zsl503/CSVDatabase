@@ -1,0 +1,93 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="头文件">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Global">
+      <UniqueIdentifier>{abe83e29-b55d-42ae-b4b8-ba76dc785902}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Global\utils">
+      <UniqueIdentifier>{42aecb5e-531b-4695-8f26-a27e9542cb28}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Global\utils\头文件">
+      <UniqueIdentifier>{58d6b38f-c300-477d-8e47-f58beb521a74}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Global\utils\源文件">
+      <UniqueIdentifier>{7a28122b-d31b-4a7c-961b-be645df42226}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="exceptions.cpp">
+      <Filter>Global</Filter>
+    </ClCompile>
+    <ClCompile Include="codeConvert.cpp">
+      <Filter>Global\utils\源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CSV.cpp">
+      <Filter>Global\utils\源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="others.cpp">
+      <Filter>Global\utils\源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CSVDatabase.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="TableHeader.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="TableData.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="DataFilter.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CSVType.cpp">
+      <Filter>Global\utils\源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="exceptions.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="codeConvert.h">
+      <Filter>Global\utils\头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CSV.h">
+      <Filter>Global\utils\头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="others.h">
+      <Filter>Global\utils\头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CSVDatabase.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="TableHeader.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="global.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="TableData.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DataFilter.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CSVType.h">
+      <Filter>Global\utils\头文件</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
