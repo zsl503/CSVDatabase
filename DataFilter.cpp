@@ -14,6 +14,36 @@ UnionFilter::UnionFilter(const UnionFilter& filter)
 UnionFilter::UnionFilter(const VerifyFilter& filter)
 	: type(Type::SINGLE), filter(filter.copy()){}
 
+UnionFilter::UnionFilter(const FilterGetter& getter)
+{
+	UnionFilter(VerifyFilter(getter));
+}
+
+UnionFilter::UnionFilter(CSVOperate::CSVData data)
+{
+	UnionFilter(FilterGetter(data));
+}
+
+UnionFilter::UnionFilter(int data)
+{
+	UnionFilter(CSVOperate::CSVData(data));
+}
+
+UnionFilter::UnionFilter(double data)
+{
+	UnionFilter(CSVOperate::CSVData(data));
+}
+
+UnionFilter::UnionFilter(bool data)
+{
+	UnionFilter(CSVOperate::CSVData(data));
+}
+
+UnionFilter::UnionFilter(wstring data)
+{
+	UnionFilter(CSVOperate::CSVData(data));
+}
+
 DataFilter* UnionFilter::copy() const
 {
 	UnionFilter* f = new UnionFilter();
@@ -71,6 +101,9 @@ VerifyFilter::VerifyFilter(const VerifyFilter& filter)
 	:type(filter.type), getter(new FilterGetter(*filter.getter)),
 	getter2(new FilterGetter(*filter.getter2)) {}
 
+CSVDatabase::Table::VerifyFilter::VerifyFilter(const FilterGetter& getter)
+	: type(Type::SINGLE), getter(new FilterGetter(getter)){}
+
 VerifyFilter::~VerifyFilter()
 {
 	delete getter;
@@ -94,6 +127,8 @@ const bool VerifyFilter::verify(const vector<CSVOperate::CSVData>& datas) const
 		return getter->verify(datas) <= getter2->verify(datas);
 	case Type::NOTEQUAL:
 		return getter->verify(datas) != getter2->verify(datas);
+	case Type::SINGLE:
+		return !!(getter->verify(datas));
 	default:
 		return false;
 	}
@@ -112,7 +147,26 @@ FilterGetter::~FilterGetter()
 
 const TableHeader FilterGetter::getNewHeader() const
 {
-	return TableHeader({const_cast<TableHeader&>(header)[name]});
+	const FilterGetter* p = this;
+	vector<Field> headers = {};
+	while(p!=nullptr)
+	{
+		headers.push_back(const_cast<TableHeader&>(p->header)[p->name]);
+		p = p->filter2;
+	}
+	return TableHeader(headers);
+}
+
+const vector<CSVOperate::CSVData> CSVDatabase::Table::FilterGetter::getUnion(const vector<CSVOperate::CSVData>& datas) const
+{
+	const FilterGetter* p = this;
+	vector<CSVOperate::CSVData> res;
+	while (p != nullptr)
+	{
+		res.push_back(p->getValue(datas));
+		p = p->filter2;
+	}
+	return res;
 }
 
 const TableHeader FilterGetter::getHeader() const
@@ -122,7 +176,7 @@ const TableHeader FilterGetter::getHeader() const
 
 const CSVOperate::CSVData& FilterGetter::getValue(const vector<CSVOperate::CSVData>& datas) const
 {
-	if(isValue)
+	if (isValue)
 		return data;
 	return datas[const_cast<TableHeader&>(header)[name].getIndex()];
 }
@@ -142,6 +196,8 @@ const CSVOperate::CSVData FilterGetter::verify(const vector<CSVOperate::CSVData>
 		return getValue(datas) / filter2->verify(datas);
 	case Type::SINGLE:
 		return getValue(datas);
+	case Type::Union:
+		throw UnexpectOperationExcetion();
 	default:
 		return CSVOperate::CSVData();
 	}
@@ -202,4 +258,9 @@ const FilterGetter CSVDatabase::Table::operator*(const FilterGetter& getter, con
 const FilterGetter CSVDatabase::Table::operator/(const FilterGetter& getter, const FilterGetter& getter2)
 {
 	return FilterGetter(getter, new FilterGetter(getter2), FilterGetter::Type::DIV);
+}
+
+const FilterGetter CSVDatabase::Table::operator&&(const FilterGetter& getter, const FilterGetter& getter2)
+{
+	return FilterGetter(getter, new FilterGetter(getter2), FilterGetter::Type::Union);
 }

@@ -99,6 +99,19 @@ DATATYPE CSVData::getType() const
 	return type;
 }
 
+bool CSVData::operator!() const
+{
+	switch (type)
+	{
+	case DATATYPE::STR:return dStr != L"";
+	case DATATYPE::INT:return dInt;
+	case DATATYPE::DOUBLE:return dDouble;
+	case DATATYPE::BOOL:return dBool;
+	}
+	return false;
+}
+
+
 bool CSVData::operator==(const CSVData& ps) const
 {
 

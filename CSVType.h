@@ -31,6 +31,7 @@ namespace CSVOperate
         DATATYPE getType() const;
         std::wstring getStr() const;
         std::wstring toString() const;
+        bool operator!() const;
         bool operator==(const CSVData& ps) const;
         bool operator<(const CSVData& ps) const;
         bool operator>(const CSVData& ps) const;

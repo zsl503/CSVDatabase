@@ -27,7 +27,9 @@ void main()
         //CSVData b = CSVData(L"LLL", DATATYPE::STR);
         TableData datas = TableData(header, { {20 ,89,true} });
         //VerifyFilter a = (datas(L"test") <= datas(L"test2"));
-        wcout << datas[datas[L"test"] == 20][0][0].toString();
+        //TableData tmp = datas[datas[datas[L"test"]][L"test2"]];
+        datas = datas[datas[L"test"] && datas[L"test2"]];
+        wcout << datas[(datas[L"test"] == 20)|| UnionFilter(datas[L"test"])][0][0].toString();
     }
     catch (CSVDBException e) {
         wcout << e.what();

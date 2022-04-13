@@ -12,12 +12,19 @@ const FilterGetter TableData::operator[] (const std::wstring name) const
 
 TableData TableData::operator[](const FieldGetter& getter)
 {
+    FilterGetter* p = (FilterGetter*)&getter;
     std::vector<std::vector<CSVOperate::CSVData>> res;
-    for (auto col : datas)
-    {
-        res.push_back({ getter.verify(col) });
-    }
-    return TableData(const_cast<FieldGetter&>(getter).getNewHeader(), res);
+    if ((p->type == FilterGetter::Type::Union))
+        for (auto col : datas)
+        {
+            res.push_back(p->getUnion(col));
+        }
+    else
+        for (auto col : datas)
+        {
+            res.push_back({ getter.verify(col) });
+        }
+    return TableData(p->getNewHeader(), res);
 }
 
 TableData CSVDatabase::Table::TableData::operator[](const DataFilter& filter)
