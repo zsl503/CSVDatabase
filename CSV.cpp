@@ -53,7 +53,7 @@ string CSV::splits2CSVWstring(const vector<CSVData> splits)
     wstring word;
     for (CSVData item : splits)
     {
-        word = item.toStrng();
+        word = item.toString();
         replace_all(word, L"\"", L"\"\"");
         if (word.find(',') != wstring::npos)
             ret += (L'"' + word + L'"' + L',');
@@ -89,7 +89,7 @@ void CSV::insertLineToCSV(vector<CSVData> splits, int index, int primaryIndex)
             outFile.close();
             inFile.close();
             remove(UnicodeToANSI(path + L".edit").c_str());
-            throw PrimaryKeyOverlapException(splits[i].toStrng());
+            throw PrimaryKeyOverlapException(splits[i].toString());
         }
         if (i == index) outFile << csvString << endl;
         outFile << line << endl;

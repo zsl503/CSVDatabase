@@ -109,13 +109,15 @@ Table::TableHeader CSVDatabase::Database::getTableHeader(std::wstring tableName)
         { DATATYPE::STR, DATATYPE::STR, DATATYPE::BOOL, DATATYPE::STR });
     vector<vector<CSVData>> datas = hdCSV.readCSV(1);
     vector<Table::Field> fields;
+    int i = 0;
     for(vector<CSVData> item : datas)
     {
         fields.push_back(Table::Field(
             item[0].getStr(), 
             stringToDataType(item[1].getStr()), 
-            item[2].getBool(),
+            item[2].getBool(),i,
             item[3].getStr()));
+        i++;
      }
     return Table::TableHeader(fields);
 }

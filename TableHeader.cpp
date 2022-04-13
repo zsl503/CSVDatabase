@@ -2,8 +2,8 @@
 #include "global.h"
 using namespace CSVDatabase;
 using namespace Table;
-Field::Field(std::wstring name, CSVOperate::DATATYPE type, bool isPrimaryKey, std::wstring foreignKey)
-    :name(name), type(type), isPrimaryKey(isPrimaryKey)
+Field::Field(std::wstring name, CSVOperate::DATATYPE type, bool isPrimaryKey, int index, std::wstring foreignKey)
+    :name(name), type(type), isPrimaryKey(isPrimaryKey),index(index)
 {
     if (foreignKey.size() == 0)
     {
@@ -18,24 +18,24 @@ Field::Field(std::wstring name, CSVOperate::DATATYPE type, bool isPrimaryKey, st
     this->foreignKey[1] = foreignKey.substr(point + 1, foreignKey.size() - point);
 }
 
-std::wstring Field::getForeignKeyString()
+const std::wstring Field::getForeignKeyString() const
 {
     if (foreignKey[0].size() == 0)
         return L"";
     return foreignKey[0] + L'.' + foreignKey[1];
 }
 
-std::wstring Field::getTypeString()
+const std::wstring Field::getTypeString() const
 {
     return dataTypeToStr(type);
 }
 
-std::wstring Field::getNameString()
+const std::wstring Field::getNameString() const
 {
     return name;
 }
 
-std::wstring Field::getIsPrimaryString()
+const std::wstring Field::getIsPrimaryString() const
 {
     return isPrimaryKey ? L"TRUE" : L"FALSE";
 }
@@ -45,9 +45,14 @@ bool Field::isPrimary()
     return isPrimaryKey;
 }
 
-Field TableHeader::getFieldByName(std::wstring name)
+const size_t Field::getIndex()
 {
-    for (Field item : fields)
+    return index;
+}
+
+Field& TableHeader::operator[](const std::wstring name) 
+{
+    for (Field& item : fields)
     {
         if (item.getNameString() == name)
             return item;
@@ -64,3 +69,4 @@ bool TableHeader::isFieldExsist(std::wstring name)
     }
     return false;
 }
+

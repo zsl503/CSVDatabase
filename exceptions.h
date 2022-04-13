@@ -56,3 +56,15 @@ class PrimaryKeyOverlapException :public CSVDBException
 public:
     PrimaryKeyOverlapException(const std::wstring& detail) :CSVDBException(601, L"重复主键值\n" + detail) {}
 };
+
+class UnexpectOperationExcetion :public CSVDBException
+{
+public:
+    UnexpectOperationExcetion() :CSVDBException(701, L"非法操作") {}
+};
+
+class OutOfIndexException :public CSVDBException
+{
+public:
+    OutOfIndexException() :CSVDBException(801, L"下标溢出") {}
+};

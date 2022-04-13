@@ -10,7 +10,7 @@ namespace CSVDatabase
 		class TableData
 		{
 		public:
-			TableData(TableHeader header, std::vector<std::vector<std::wstring>> datas) :header(header), datas(datas) {}
+			TableData(TableHeader header, std::vector<std::vector<CSVOperate::CSVData>> datas) :header(header), datas(datas) {}
 
 			TableData select(const std::vector<std::wstring>& fields);
 
@@ -20,25 +20,22 @@ namespace CSVDatabase
 
 			TableData groupby();
 
-			const TableData& operator[] (const std::wstring) const;
+			const FilterGetter operator[] (const std::wstring) const;
 
-			const TableData& operator&& (const TableData) const;
+			//std::vector<CSVOperate::CSVData>& operator[] (int);
 
-			const TableData& operator|| (const TableData) const;
+			std::vector<CSVOperate::CSVData>& operator[] (int);
 
-			const TableData& operator< (const TableData) const;
+			//TableData operator[] (const std::wstring&);
 
-			const TableData& operator> (const TableData) const;
+			TableData operator[] (const FieldGetter&);
 
-			const TableData& operator== (const TableData) const;
-
-			const TableData& operator!= (const TableData) const;
+			TableData operator[] (const DataFilter&);
 
 
 		private:
 			TableHeader header;
-			std::vector<std::vector<std::wstring>> datas;
-			std::wstring currentField = nullptr;
+			std::vector<std::vector<CSVOperate::CSVData>> datas;
 		};
 
 	}

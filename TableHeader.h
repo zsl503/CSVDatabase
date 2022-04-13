@@ -11,24 +11,29 @@ namespace CSVDatabase
 		class Field
 		{
 		public:
-			Field(std::wstring name, CSVOperate::DATATYPE type, bool isPrimary, std::wstring foreignKey = L"");
-			std::wstring getForeignKeyString();
-			std::wstring getTypeString();
-			std::wstring getNameString();
-			std::wstring getIsPrimaryString();
+			Field(std::wstring name, CSVOperate::DATATYPE type, bool isPrimary, int index, std::wstring foreignKey = L"");
+			const std::wstring getForeignKeyString() const;
+			const std::wstring getTypeString() const;
+			const std::wstring getNameString() const;
+			const std::wstring getIsPrimaryString() const;
 			bool isPrimary();
+			const size_t getIndex();
 		private:
 			std::wstring name;
 			CSVOperate::DATATYPE type;
 			bool isPrimaryKey;
 			std::wstring foreignKey[2];
+			std::size_t index;
 		};
 
 		class TableHeader
 		{
 		public:
+			TableHeader() :fields(){}
 			TableHeader(std::vector<Field> fields) : fields(fields) {}
-			Field getFieldByName(std::wstring name);
+			TableHeader(const TableHeader& header) : fields(header.fields) {}
+			Field& operator[] (const std::wstring);
+
 			bool isFieldExsist(std::wstring name);
 		private:
 			std::vector<Field> fields;

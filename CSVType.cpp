@@ -32,29 +32,29 @@ CSVData::CSVData(std::wstring data, DATATYPE type):type(type)
 	}
 }
 
-int CSVData::getInt()
+int CSVData::getInt() const
 {
 	return dInt;
 }
 
 
-double CSVData::getDouble()
+double CSVData::getDouble() const
 {
 	return dDouble;
 }
 
-std::wstring CSVData::getStr()
+std::wstring CSVData::getStr() const
 {
 	return dStr;
 }
 
 
-bool CSVData::getBool()
+bool CSVData::getBool() const
 {
 	return dBool;
 }
 
-std::wstring CSVData::toStrng()
+std::wstring CSVData::toString()  const
 {
 	switch (type)
 	{
@@ -67,7 +67,7 @@ std::wstring CSVData::toStrng()
 	}
 }
 
-std::wstring CSVOperate::dataTypeToStr(DATATYPE type)
+std::wstring CSVOperate::dataTypeToStr(DATATYPE type) 
 {
 	switch (type)
 	{
@@ -94,6 +94,11 @@ DATATYPE CSVOperate::stringToDataType(std::wstring dataString)
 		throw InvalidValueException(L"非法类型值 " + dataString);
 }
 
+DATATYPE CSVData::getType() const
+{
+	return type;
+}
+
 bool CSVData::operator==(const CSVData& ps) const
 {
 
@@ -108,7 +113,142 @@ bool CSVData::operator==(const CSVData& ps) const
 	return false;
 }
 
-DATATYPE CSVData::getType()
+bool CSVData::operator<(const CSVData& ps) const
 {
-	return type;
+
+	if (type == ps.type)
+		switch (type)
+		{
+		case DATATYPE::STR:return dStr < ps.dStr;
+		case DATATYPE::INT:return dInt < ps.dInt;
+		case DATATYPE::DOUBLE:return dDouble < ps.dDouble;
+		case DATATYPE::BOOL:return dBool < ps.dBool;
+		}
+	return false;
+}
+
+bool CSVData::operator>(const CSVData& ps) const
+{
+
+	if (type == ps.type)
+		switch (type)
+		{
+		case DATATYPE::STR:return dStr > ps.dStr;
+		case DATATYPE::INT:return dInt > ps.dInt;
+		case DATATYPE::DOUBLE:return dDouble > ps.dDouble;
+		case DATATYPE::BOOL:return dBool > ps.dBool;
+		}
+	return false;
+}
+
+bool CSVData::operator<=(const CSVData& ps) const
+{
+
+	if (type == ps.type)
+		switch (type)
+		{
+		case DATATYPE::STR:return dStr <= ps.dStr;
+		case DATATYPE::INT:return dInt <= ps.dInt;
+		case DATATYPE::DOUBLE:return dDouble <= ps.dDouble;
+		case DATATYPE::BOOL:return dBool <= ps.dBool;
+		}
+	return false;
+}
+
+bool CSVData::operator>=(const CSVData& ps) const
+{
+
+	if (type == ps.type)
+		switch (type)
+		{
+		case DATATYPE::STR:return dStr >= ps.dStr;
+		case DATATYPE::INT:return dInt >= ps.dInt;
+		case DATATYPE::DOUBLE:return dDouble >= ps.dDouble;
+		case DATATYPE::BOOL:return dBool >= ps.dBool;
+		}
+	return false;
+}
+
+bool CSVData::operator!=(const CSVData& ps) const
+{
+
+	if (type == ps.type)
+		switch (type)
+		{
+		case DATATYPE::STR:return dStr != ps.dStr;
+		case DATATYPE::INT:return dInt != ps.dInt;
+		case DATATYPE::DOUBLE:return dDouble != ps.dDouble;
+		case DATATYPE::BOOL:return dBool != ps.dBool;
+		}
+	return false;
+}
+
+
+const CSVData CSVData::operator+(const CSVData& data) const
+{
+	if (type == data.type)
+		switch (type)
+		{
+		case DATATYPE::STR:return CSVData(dStr + data.dStr);
+		case DATATYPE::INT:return dInt + data.dInt;
+		case DATATYPE::DOUBLE:return dDouble + data.dDouble;
+		case DATATYPE::BOOL:throw UnexpectOperationExcetion();
+		}
+	else if(type == DATATYPE::INT && data.type == DATATYPE::DOUBLE)
+		return dInt + data.dDouble;
+	else if (data.type == DATATYPE::INT && type == DATATYPE::DOUBLE)
+		return data.dInt + dDouble;
+	throw UnexpectOperationExcetion();
+}
+
+const CSVData CSVData::operator-(const CSVData& data) const
+{
+	if (type == data.type)
+		switch (type)
+		{
+		case DATATYPE::STR:throw UnexpectOperationExcetion();
+		case DATATYPE::INT:return dInt - data.dInt;
+		case DATATYPE::DOUBLE:return dDouble - data.dDouble;
+		case DATATYPE::BOOL:throw UnexpectOperationExcetion();
+		}
+	else if (type == DATATYPE::INT && data.type == DATATYPE::DOUBLE)
+		return dInt - data.dDouble;
+	else if (data.type == DATATYPE::INT && type == DATATYPE::DOUBLE)
+		return data.dInt - dDouble;
+	throw UnexpectOperationExcetion();
+}
+
+const CSVData CSVData::operator*(const CSVData& data) const
+{
+	if (type == data.type)
+		switch (type)
+		{
+		case DATATYPE::STR:throw UnexpectOperationExcetion();
+		case DATATYPE::INT:return dInt * data.dInt;
+		case DATATYPE::DOUBLE:return dDouble * data.dDouble;
+		case DATATYPE::BOOL:throw UnexpectOperationExcetion();
+		}
+	else if (type == DATATYPE::INT && data.type == DATATYPE::DOUBLE)
+		return dInt * data.dDouble;
+	else if (data.type == DATATYPE::INT && type == DATATYPE::DOUBLE)
+		return data.dInt * dDouble;
+	throw UnexpectOperationExcetion();
+}
+
+
+const CSVData CSVData::operator/(const CSVData& data) const
+{
+	if (type == data.type)
+		switch (type)
+		{
+		case DATATYPE::STR:throw UnexpectOperationExcetion();
+		case DATATYPE::INT:return dInt / data.dInt;
+		case DATATYPE::DOUBLE:return dDouble / data.dDouble;
+		case DATATYPE::BOOL:throw UnexpectOperationExcetion();
+		}
+	else if (type == DATATYPE::INT && data.type == DATATYPE::DOUBLE)
+		return dInt / data.dDouble;
+	else if (data.type == DATATYPE::INT && type == DATATYPE::DOUBLE)
+		return data.dInt / dDouble;
+	throw UnexpectOperationExcetion();
 }

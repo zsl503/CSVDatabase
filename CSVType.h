@@ -19,14 +19,28 @@ namespace CSVOperate
     class CSVData
     {
     public:
-        CSVData(std::wstring data,DATATYPE type = DATATYPE::STR);
-        int getInt();
-        bool getBool();
-        double getDouble();
-        DATATYPE getType();
-        std::wstring getStr();
-        std::wstring toStrng();
+        CSVData(){}
+        CSVData(std::wstring data, DATATYPE type);
+        CSVData(std::wstring data) :dStr(data), type(DATATYPE::STR) {}
+        CSVData(int data) :dInt(data), type(DATATYPE::INT) {}
+        CSVData(double data) :dDouble(data), type(DATATYPE::DOUBLE) {}
+        CSVData(bool data):dBool(data), type(DATATYPE::BOOL) {}
+        int getInt() const;
+        bool getBool() const;
+        double getDouble() const;
+        DATATYPE getType() const;
+        std::wstring getStr() const;
+        std::wstring toString() const;
         bool operator==(const CSVData& ps) const;
+        bool operator<(const CSVData& ps) const;
+        bool operator>(const CSVData& ps) const;
+        bool operator<=(const CSVData& ps) const;
+        bool operator>=(const CSVData& ps) const;
+        bool operator!=(const CSVData& ps) const;
+        const CSVData operator+(const CSVData& data) const;
+        const CSVData operator-(const CSVData& data) const;
+        const CSVData operator*(const CSVData& data) const;
+        const CSVData operator/(const CSVData& data) const;
     private:
         DATATYPE type;
         std::wstring dStr;
