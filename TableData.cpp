@@ -5,11 +5,6 @@ const FilterGetter TableData::operator[] (const std::wstring name) const
     return FilterGetter(header, name);
 }
 
-//TableData TableData::operator[](const std::wstring& name)
-//{
-//    return (*this)[(*this)(name)];
-//}
-
 TableData TableData::operator[](const FieldGetter& getter)
 {
     FilterGetter* p = (FilterGetter*)&getter;
