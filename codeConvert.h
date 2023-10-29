@@ -1,5 +1,4 @@
 #pragma once
-
 #include <iostream>
 #include <codecvt>
 using namespace std;

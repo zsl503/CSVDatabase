@@ -1,4 +1,4 @@
-Ôªø#pragma once
+#pragma once
 #include "CSV.h"
 #include "codeConvert.h"
 #include "others.h"
@@ -6,9 +6,10 @@
 #include <string>
 #include <fstream>
 #include <iostream>
+#include "csvdbexceptions.h"
 
-using namespace CSVOperate;
-
+using namespace csvop;
+using namespace csvdb;
 wstring CSV::wchars2wstring(vector<wchar_t> source)
 {
     return wstring(source.begin(),source.end());
@@ -16,6 +17,8 @@ wstring CSV::wchars2wstring(vector<wchar_t> source)
 
 vector<wstring> CSV::csvSplit(const wstring &source)
 {
+    if (source.size() == 0)
+        return {};
     vector<wstring> res;
     vector<wchar_t> word;
     bool isStrict = false;
@@ -47,13 +50,13 @@ vector<wstring> CSV::csvSplit(const wstring &source)
     return res;
 }
 
-string CSV::splits2CSVWstring(const vector<CSVData> splits)
+wstring CSV::splits2CSVWstring(const vector<CSVData> splits)
 {
     wstring ret;
     wstring word;
     for (CSVData item : splits)
     {
-        word = item.toStrng();
+        word = item.toString();
         replace_all(word, L"\"", L"\"\"");
         if (word.find(',') != wstring::npos)
             ret += (L'"' + word + L'"' + L',');
@@ -61,16 +64,59 @@ string CSV::splits2CSVWstring(const vector<CSVData> splits)
             ret += (word + L',');
     }
     ret.pop_back();
-    return UnicodeToANSI(ret);
+    return ret;
+    //return UnicodeToUTF8(ret);
 }
 
-void CSV::insertLineToCSV(vector<CSVData> splits, int index, int primaryIndex)
+csvop::CSV::CSV(wstring path, vector<DATATYPE> types, CSVCode code) 
+    :path(path), types(types), code(code) 
 {
-    for (size_t i = 0; i < splits.size(); i++)
+    switch (code)
     {
-        if (splits[i].getType() != types[i])
+    case csvop::CSVCode::UTF8:
+    {
+        convert2Unicode = UTF8ToUnicode;
+        break;
+    }
+    case csvop::CSVCode::ANSI:
+    {
+        convert2Unicode = ANSIToUnicode;
+        break;
+    }
+    default:
+    {
+        throw UnexpectCodeException();
+    }
+    }
+}
+
+void CSV::insertLine(vector<CSVData> splits, int index, vector<int> primaryIndexs, int skipLine)
+{
+    _updateLine(splits, 0, index, primaryIndexs, skipLine);
+}
+
+void CSV::updateLine(vector<CSVData> splits, int index, vector<int> primaryIndexs, int skipLine)
+{
+    _updateLine(splits, 1, index, primaryIndexs, skipLine);
+}
+
+void CSV::_updateLine(vector<CSVData> splits, int mode, int index, vector<int> primaryIndexs,int skipLine)
+{
+    // »Áπ˚ «∏¸–¬£¨‘Úsplits[0]Œ™¥˝∏¸–¬µƒ¡––Ú∫≈£¨≤ª¥Ê‘⁄”⁄±Ì£ª»Áπ˚ «≤Â»Î£¨splits[0]Œ™’˝≥£±Ìµ⁄“ª∏ˆ÷µ
+    bool isUpdate = false;
+    if (splits.size() == types.size() + 1)
+    {
+        splits.erase(splits.begin());
+        isUpdate = true;
+    }
+    if (splits.size() < 1 || splits.size() != types.size())
+        return;
+
+    for (size_t i = 1; i < splits.size(); i++)
+    {
+        if (!splits[i].isNull() && splits[i].getType() != types[i])
             throw InvalidValueException(
-                L"ÈùûÊ≥ïÂ≠óÊÆµÁ±ªÂûãÔºåÂ∫î‰∏∫ " + dataTypeToStr(types[i]) + L" ËæìÂÖ• " + dataTypeToStr(splits[i].getType()));
+                L"∑«∑®◊÷∂Œ¿‡–Õ£¨”¶Œ™ " + dataTypeToStr(types[i]) + L"  ‰»Î " + dataTypeToStr(splits[i].getType()));
     }
     ifstream inFile(path, ios::in);
     if (!inFile)
@@ -79,19 +125,85 @@ void CSV::insertLineToCSV(vector<CSVData> splits, int index, int primaryIndex)
         throw OpenFileException(path);
     }
     ofstream outFile(path + L".edit", ios::out);
-    string csvString = splits2CSVWstring(splits);
-    string line;
-    for (size_t i = 0; getline(inFile, line) || i == index; i++)
+    wstring wstr = splits2CSVWstring(splits);
+    string csvString;
+
+    switch (code)
     {
-        if (primaryIndex != -1 && 
-            splits[primaryIndex] == CSVData(csvSplit(ANSIToUnicode(line))[primaryIndex], types[primaryIndex]))
+    case csvop::CSVCode::UTF8:
+    {
+        char c1 = 0xEF;
+        char c2 = 0xBB;
+        char c3 = 0xBF;
+        outFile << c1 << c2 << c3;
+        csvString = UnicodeToUTF8(wstr);
+        break;
+    }
+    case csvop::CSVCode::ANSI:
+        csvString = UnicodeToANSI(wstr);
+        break;
+    default:
+        csvString = string(wstr.begin(), wstr.end());
+    }
+    string line;
+    int i = skipLine;
+    while (skipLine--)
+    {
+        getline(inFile, line);
+        outFile << line << endl;
+    }
+    for (i; getline(inFile, line) || i == index; i++)
+    {
+        if (line.empty())
+            continue;
+        if (i == 0)
         {
-            outFile.close();
-            inFile.close();
-            remove(UnicodeToANSI(path + L".edit").c_str());
-            throw PrimaryKeyOverlapException(splits[i].toStrng());
+            switch (code)
+            {
+            case csvop::CSVCode::UTF8:
+            {
+                char c1 = 0xEF;
+                char c2 = 0xBB;
+                char c3 = 0xBF;
+                if (line.size() >= 3 && line[0] == c1 && line[1] == c2 && line[2] == c3)
+                    line = line.substr(3);
+                break;
+            }
+            default:
+                break;
+            }
         }
-        if (i == index) outFile << csvString << endl;
+        if (primaryIndexs.size() && !(i == index && mode == 1))
+        {
+            bool isSamePrimary = true;
+            for (auto j : primaryIndexs)
+            {
+                if (isUpdate)
+                    j -= 1;
+                CSVData d;
+                d = CSVData(csvSplit(convert2Unicode(line))[j], types[j]);
+                if (splits[j] != d)
+                {
+                    isSamePrimary = false;
+                    break;
+                }
+
+            }
+            if (isSamePrimary)
+            {
+                outFile.close();
+                inFile.close();
+                remove(UnicodeToANSI(path + L".edit").c_str());
+                throw PrimaryKeyOverlapException(wstr);
+            }
+        }
+
+        if (i == index && csvString.size())
+        {
+            outFile << csvString << endl;
+            if (mode == 1)
+                continue;
+        }
         outFile << line << endl;
     }
     if (index == -1)
@@ -103,7 +215,7 @@ void CSV::insertLineToCSV(vector<CSVData> splits, int index, int primaryIndex)
     int _ = rename(UnicodeToANSI(path + L".edit").c_str(), UnicodeToANSI(path).c_str());
 }
 
-vector<CSVData> CSV::deleteLineFromCSV(size_t index)
+vector<CSVData> CSV::deleteLine(size_t index)
 {
     ifstream inFile(path, ios::in);
     ofstream outFile;
@@ -117,9 +229,11 @@ vector<CSVData> CSV::deleteLineFromCSV(size_t index)
     vector<CSVData> data;
     for (size_t i = 0; getline(inFile, line); i++)
     {
+        if (line.empty())
+            continue;
         if (i == index)
         {
-            split = csvSplit(ANSIToUnicode(line));
+            split = csvSplit(convert2Unicode(line));
             for (size_t i = 0; i < types.size(); i++)
                 data.push_back(CSVData(split[i], types[i]));
         } 
@@ -134,7 +248,7 @@ vector<CSVData> CSV::deleteLineFromCSV(size_t index)
     return data;
 }
 
-vector<vector<CSVData>> CSV::readCSV(size_t skipLine)
+vector<vector<CSVData>> CSV::read(size_t skipLine)
 {
     ifstream inFile(path, ios::in);
     if (!inFile)
@@ -146,15 +260,29 @@ vector<vector<CSVData>> CSV::readCSV(size_t skipLine)
     vector<vector<CSVData>> res;
     vector<wstring> words;
     vector<CSVData> data;
+    int index = skipLine;
     while (skipLine--)getline(inFile, line);
-    while (getline(inFile, line))//getline(inFile, line)Ë°®Á§∫ÊåâË°åËØªÂèñCSVÊñá‰ª∂‰∏≠ÁöÑÊï∞ÊçÆ
+    while (getline(inFile, line))//getline(inFile, line)±Ì æ∞¥––∂¡»°CSVŒƒº˛÷–µƒ ˝æ›
     {
-        wstring wline = ANSIToUnicode(line);
+        wstring wline;
+        switch (code)
+        {
+        case csvop::CSVCode::UTF8:
+            wline = UTF8ToUnicode(line);
+            break;
+        case csvop::CSVCode::ANSI:
+            wline = ANSIToUnicode(line);
+            break;
+        }
         words = csvSplit(wline);
         if (words.size() == 0)
             continue;
         else if (words.size() < types.size())
-            throw CSVFormatException(L"Ë°®Â≠óÊÆµÊï∞Â∞ë‰∫éÊåáÂÆöÂ≠óÊÆµÊï∞ÔºåË°®Ë∑ØÂæÑÔºö" + path);
+        {
+            inFile.close();
+            throw CSVFormatException(L"±Ì◊÷∂Œ ˝…Ÿ”⁄÷∏∂®◊÷∂Œ ˝£¨±Ì¬∑æ∂£∫" + path);
+        }
+        data.push_back(csvop::CSVData(index++));
         for (size_t i = 0; i < types.size(); i++)
         {
             data.push_back(CSVData(words[i], types[i]));

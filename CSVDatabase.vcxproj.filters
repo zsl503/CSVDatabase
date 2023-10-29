@@ -27,7 +27,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="exceptions.cpp">
+    <ClCompile Include="csvdbexceptions.cpp">
       <Filter>Global</Filter>
     </ClCompile>
     <ClCompile Include="codeConvert.cpp">
@@ -54,12 +54,9 @@
     <ClCompile Include="CSVType.cpp">
       <Filter>Global\utils\源文件</Filter>
     </ClCompile>
-    <ClCompile Include="main.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="exceptions.h">
+    <ClInclude Include="csvdbexceptions.h">
       <Filter>Global</Filter>
     </ClInclude>
     <ClInclude Include="codeConvert.h">
@@ -77,9 +74,6 @@
     <ClInclude Include="TableHeader.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="global.h">
-      <Filter>Global</Filter>
-    </ClInclude>
     <ClInclude Include="TableData.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -88,6 +82,12 @@
     </ClInclude>
     <ClInclude Include="CSVType.h">
       <Filter>Global\utils\头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="csvop.h">
+      <Filter>Global\utils\头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="csvdb.h">
+      <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
