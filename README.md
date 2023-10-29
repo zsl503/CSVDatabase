@@ -1,4 +1,7 @@
 # CSVDatabase
+## 描述
+这是一个基于CSV文件的微型关系型数据库，初步实现了创建修改表、主键、便捷增删改查等操作。仿照pandas方式筛选数据。
+
 ## 使用方法
 以下为部分用法，具体可参考示例代码：https://github.com/zsl503/CommodityManagement/releases/tag/20231030
 
