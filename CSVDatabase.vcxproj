@@ -27,26 +27,26 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -143,9 +143,8 @@
     <ClCompile Include="CSVDatabase.cpp" />
     <ClCompile Include="CSVType.cpp" />
     <ClCompile Include="DataFilter.cpp" />
-    <ClCompile Include="exceptions.cpp" />
+    <ClCompile Include="csvdbexceptions.cpp" />
     <ClCompile Include="CSV.cpp" />
-    <ClCompile Include="main.cpp" />
     <ClCompile Include="others.cpp" />
     <ClCompile Include="TableData.cpp" />
     <ClCompile Include="TableHeader.cpp" />
@@ -154,10 +153,11 @@
     <ClInclude Include="codeConvert.h" />
     <ClInclude Include="CSVDatabase.h" />
     <ClInclude Include="CSV.h" />
+    <ClInclude Include="csvdb.h" />
+    <ClInclude Include="csvop.h" />
     <ClInclude Include="CSVType.h" />
     <ClInclude Include="DataFilter.h" />
-    <ClInclude Include="exceptions.h" />
-    <ClInclude Include="global.h" />
+    <ClInclude Include="csvdbexceptions.h" />
     <ClInclude Include="others.h" />
     <ClInclude Include="TableData.h" />
     <ClInclude Include="TableHeader.h" />

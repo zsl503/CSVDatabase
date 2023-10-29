@@ -9,16 +9,3 @@ void replace_all(std::wstring& str, const std::wstring& old_value, const std::ws
             break;
     }
 }
-
-//std::ifstream openFile(std::wstring path)
-//{
-//    std::ifstream fin(path);
-//    if (!fin.good())
-//    {
-//        fin.close();
-//        std::ofstream fout(path);
-//        fout.close();
-//    }
-//        
-//    return fin;
-//}

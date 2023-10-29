@@ -1,6 +1,7 @@
 #include "DataFilter.h"
-using namespace CSVDatabase::Table;
-
+#include "csvdbexceptions.h"
+using namespace csvdb::table;
+using std::vector;
 UnionFilter::UnionFilter(const DataFilter& filter, const DataFilter& filter2, Type type)
 	:type(type), filter(filter.copy()), filter2(filter2.copy()) {}
 
@@ -15,34 +16,22 @@ UnionFilter::UnionFilter(const VerifyFilter& filter)
 	: type(Type::SINGLE), filter(filter.copy()){}
 
 UnionFilter::UnionFilter(const FilterGetter& getter)
-{
-	UnionFilter(VerifyFilter(getter));
-}
+	:UnionFilter(VerifyFilter(getter)){}
 
-UnionFilter::UnionFilter(CSVOperate::CSVData data)
-{
-	UnionFilter(FilterGetter(data));
-}
+UnionFilter::UnionFilter(csvop::CSVData data)
+	:UnionFilter(FilterGetter(data)){}
 
 UnionFilter::UnionFilter(int data)
-{
-	UnionFilter(CSVOperate::CSVData(data));
-}
+	:UnionFilter(csvop::CSVData(data)){}
 
 UnionFilter::UnionFilter(double data)
-{
-	UnionFilter(CSVOperate::CSVData(data));
-}
+	:UnionFilter(csvop::CSVData(data)){}
 
 UnionFilter::UnionFilter(bool data)
-{
-	UnionFilter(CSVOperate::CSVData(data));
-}
+	: UnionFilter(csvop::CSVData(data)) {}
 
 UnionFilter::UnionFilter(wstring data)
-{
-	UnionFilter(CSVOperate::CSVData(data));
-}
+	:UnionFilter(csvop::CSVData(data)){}
 
 DataFilter* UnionFilter::copy() const
 {
@@ -61,7 +50,7 @@ UnionFilter::~UnionFilter()
 	delete filter2;
 }
 
-const bool UnionFilter::verify(const vector<CSVOperate::CSVData>& datas) const
+const bool UnionFilter::verify(const vector<csvop::CSVData>& datas) const
 {
 	//CSVOperate::CSVData tmp = getValue(datas);
 	switch (type)
@@ -83,6 +72,19 @@ const TableHeader UnionFilter::getHeader() const
 {
 	return filter->getHeader();
 }
+
+void UnionFilter::updateHeader(TableHeader header)
+{
+	switch (type)
+	{
+	case Type::SINGLE:
+	case Type::NOT:
+		return filter->updateHeader(header);
+	default:
+		return filter->updateHeader(header), filter2->updateHeader(header);
+	}
+}
+
 DataFilter* VerifyFilter::copy() const
 {
 	VerifyFilter* f = new VerifyFilter();
@@ -101,7 +103,7 @@ VerifyFilter::VerifyFilter(const VerifyFilter& filter)
 	:type(filter.type), getter(new FilterGetter(*filter.getter)),
 	getter2(new FilterGetter(*filter.getter2)) {}
 
-CSVDatabase::Table::VerifyFilter::VerifyFilter(const FilterGetter& getter)
+csvdb::table::VerifyFilter::VerifyFilter(const FilterGetter& getter)
 	: type(Type::SINGLE), getter(new FilterGetter(getter)){}
 
 VerifyFilter::~VerifyFilter()
@@ -110,7 +112,7 @@ VerifyFilter::~VerifyFilter()
 	delete getter2;
 }
 
-const bool VerifyFilter::verify(const vector<CSVOperate::CSVData>& datas) const
+const bool VerifyFilter::verify(const vector<csvop::CSVData>& datas) const
 {
 	//CSVOperate::CSVData tmp = getValue(datas);
 	switch (type)
@@ -139,10 +141,21 @@ const TableHeader VerifyFilter::getHeader() const
 	return getter->getHeader();
 }
 
+void VerifyFilter::updateHeader(TableHeader header)
+{
+	switch (type)
+	{
+	default:
+		return getter->updateHeader(header), getter2->updateHeader(header);
+	case Type::SINGLE:
+		return getter->updateHeader(header);
+	}
+}
+
 FilterGetter::~FilterGetter()
 {
 	if(!isTmp)
-		delete filter2;
+		delete getter2;
 }
 
 const TableHeader FilterGetter::getNewHeader() const
@@ -151,20 +164,31 @@ const TableHeader FilterGetter::getNewHeader() const
 	vector<Field> headers = {};
 	while(p!=nullptr)
 	{
-		headers.push_back(const_cast<TableHeader&>(p->header)[p->name]);
-		p = p->filter2;
+		headers.emplace(headers.begin(), const_cast<TableHeader&>(p->header)[p->name]);
+		p = p->getter2;
 	}
 	return TableHeader(headers);
 }
 
-const vector<CSVOperate::CSVData> CSVDatabase::Table::FilterGetter::getUnion(const vector<CSVOperate::CSVData>& datas) const
+void FilterGetter::updateHeader(TableHeader header)
+{
+	switch (type)
+	{
+	default:
+		getter2->updateHeader(header);
+	case Type::SINGLE:
+		this->header = header;
+	}
+}
+
+const vector<csvop::CSVData> csvdb::table::FilterGetter::getUnion(const vector<csvop::CSVData>& datas) const
 {
 	const FilterGetter* p = this;
-	vector<CSVOperate::CSVData> res;
+	vector<csvop::CSVData> res;
 	while (p != nullptr)
 	{
-		res.push_back(p->getValue(datas));
-		p = p->filter2;
+		res.emplace(res.begin(),p->getValue(datas));
+		p = p->getter2;
 	}
 	return res;
 }
@@ -174,93 +198,96 @@ const TableHeader FilterGetter::getHeader() const
 	return header;
 }
 
-const CSVOperate::CSVData& FilterGetter::getValue(const vector<CSVOperate::CSVData>& datas) const
+const csvop::CSVData& FilterGetter::getValue(const vector<csvop::CSVData>& datas) const
 {
 	if (isValue)
 		return data;
-	return datas[const_cast<TableHeader&>(header)[name].getIndex()];
+	int t = const_cast<TableHeader&>(header).getIndex(name);
+	if (t >= datas.size())
+		throw OutOfIndexException();
+	return datas[t];
 }
 
-const CSVOperate::CSVData FilterGetter::verify(const vector<CSVOperate::CSVData> &datas) const
+const csvop::CSVData FilterGetter::verify(const vector<csvop::CSVData> &datas) const
 {
-	CSVOperate::CSVData tmp = getValue(datas);
+	//CSVOperate::CSVData tmp = getValue(datas);
 	switch (type)
 	{
 	case Type::ADD:
-		return getValue(datas) + filter2->verify(datas);
+		return getValue(datas) + getter2->verify(datas);
 	case Type::SUB:
-		return getValue(datas) - filter2->verify(datas);
+		return getValue(datas) - getter2->verify(datas);
 	case Type::MUL:
-		return getValue(datas) * filter2->verify(datas);
+		return getValue(datas) * getter2->verify(datas);
 	case Type::DIV:
-		return getValue(datas) / filter2->verify(datas);
+		return getValue(datas) / getter2->verify(datas);
 	case Type::SINGLE:
 		return getValue(datas);
 	case Type::Union:
 		throw UnexpectOperationExcetion();
 	default:
-		return CSVOperate::CSVData();
+		return csvop::CSVData();
 	}
 }
 
-const UnionFilter CSVDatabase::Table::operator&&(const DataFilter& filter, const DataFilter& filter2)
+const UnionFilter csvdb::table::operator&&(const DataFilter& filter, const DataFilter& filter2)
 {
 	return UnionFilter(filter, filter2, UnionFilter::Type::AND);
 }
 
-const UnionFilter CSVDatabase::Table::operator||(const DataFilter& filter, const DataFilter& filter2)
+const UnionFilter csvdb::table::operator||(const DataFilter& filter, const DataFilter& filter2)
 {
 	return UnionFilter(filter, filter2, UnionFilter::Type::OR);
 }
 
-const UnionFilter CSVDatabase::Table::operator!(const DataFilter& filter)
+const UnionFilter csvdb::table::operator!(const DataFilter& filter)
 {
 	return UnionFilter(filter, UnionFilter::Type::NOT);
 }
 
-const VerifyFilter CSVDatabase::Table::operator==(const FilterGetter& getter, const FilterGetter& getter2)
+const VerifyFilter csvdb::table::operator==(const FilterGetter& getter, const FilterGetter& getter2)
 {
 	return VerifyFilter(&getter, &getter2, VerifyFilter::Type::EQUAL);
 }
-const VerifyFilter CSVDatabase::Table::operator>(const FilterGetter& getter, const FilterGetter& getter2)
+const VerifyFilter csvdb::table::operator>(const FilterGetter& getter, const FilterGetter& getter2)
 {
 	return VerifyFilter(&getter, &getter2, VerifyFilter::Type::GREATER);
 }
-const VerifyFilter CSVDatabase::Table::operator<(const FilterGetter& getter, const FilterGetter& getter2)
+const VerifyFilter csvdb::table::operator<(const FilterGetter& getter, const FilterGetter& getter2)
 {
 	return VerifyFilter(&getter, &getter2, VerifyFilter::Type::EQUAL);
 }
-const VerifyFilter CSVDatabase::Table::operator>=(const FilterGetter& getter, const FilterGetter& getter2)
+const VerifyFilter csvdb::table::operator>=(const FilterGetter& getter, const FilterGetter& getter2)
 {
 	return VerifyFilter(&getter, &getter2, VerifyFilter::Type::GREATEREQUAL);
 }
-const VerifyFilter CSVDatabase::Table::operator<=(const FilterGetter& getter, const FilterGetter& getter2)
+const VerifyFilter csvdb::table::operator<=(const FilterGetter& getter, const FilterGetter& getter2)
 {
 	return VerifyFilter(&getter, &getter2, VerifyFilter::Type::LESSEQUAL);
 }
-const VerifyFilter CSVDatabase::Table::operator!=(const FilterGetter& getter, const FilterGetter& getter2)
+const VerifyFilter csvdb::table::operator!=(const FilterGetter& getter, const FilterGetter& getter2)
 {
 	return VerifyFilter(&getter, &getter2, VerifyFilter::Type::NOTEQUAL);
 }
 
-const FilterGetter CSVDatabase::Table::operator+(const FilterGetter& getter, const FilterGetter& getter2)
+const FilterGetter csvdb::table::operator+(const FilterGetter& getter, const FilterGetter& getter2)
 {
-	return FilterGetter(getter, new FilterGetter(getter2), FilterGetter::Type::ADD);
+	return FilterGetter(getter2, new FilterGetter(getter), FilterGetter::Type::ADD);
 }
-const FilterGetter CSVDatabase::Table::operator-(const FilterGetter& getter, const FilterGetter& getter2)
+const FilterGetter csvdb::table::operator-(const FilterGetter& getter, const FilterGetter& getter2)
 {
-	return FilterGetter(getter, new FilterGetter(getter2), FilterGetter::Type::SUB);
+	return FilterGetter(getter2, new FilterGetter(getter), FilterGetter::Type::SUB);
 }
-const FilterGetter CSVDatabase::Table::operator*(const FilterGetter& getter, const FilterGetter& getter2)
+const FilterGetter csvdb::table::operator*(const FilterGetter& getter, const FilterGetter& getter2)
 {
-	return FilterGetter(getter, new FilterGetter(getter2), FilterGetter::Type::MUL);
+	return FilterGetter(getter2, new FilterGetter(getter), FilterGetter::Type::MUL);
 }
-const FilterGetter CSVDatabase::Table::operator/(const FilterGetter& getter, const FilterGetter& getter2)
+const FilterGetter csvdb::table::operator/(const FilterGetter& getter, const FilterGetter& getter2)
 {
-	return FilterGetter(getter, new FilterGetter(getter2), FilterGetter::Type::DIV);
+	return FilterGetter(getter2, new FilterGetter(getter), FilterGetter::Type::DIV);
 }
 
-const FilterGetter CSVDatabase::Table::operator&&(const FilterGetter& getter, const FilterGetter& getter2)
+const FilterGetter csvdb::table::operator&&(const FilterGetter& getter, const FilterGetter& getter2)
 {
-	return FilterGetter(getter, new FilterGetter(getter2), FilterGetter::Type::Union);
+	return FilterGetter(getter2, new FilterGetter(getter), FilterGetter::Type::Union);
 }

@@ -1,11 +1,11 @@
 #pragma once
 #include <vector>
-#include "CSV.h"
 #include "TableHeader.h"
-
-namespace CSVDatabase
+namespace csvdb
 {
-	namespace Table
+	using std::vector;
+	using std::wstring;
+	namespace table
 	{
 		class FilterGetter;
 		class VerifyFilter;
@@ -14,9 +14,10 @@ namespace CSVDatabase
 		class DataFilter
 		{
 		public:
-			virtual DataFilter* copy() const = 0;
-			virtual const bool verify(const vector<CSVOperate::CSVData>& datas) const = 0;
-			virtual const TableHeader getHeader() const = 0;
+			virtual DataFilter* copy() const = 0;	// 拷贝
+			virtual const bool verify(const vector<csvop::CSVData>& datas) const = 0;	// 验证数据
+			virtual const TableHeader getHeader() const = 0;	// 获取筛选后的新表头
+			virtual void updateHeader(TableHeader header) = 0;	// 更新表头
 		};
 
 		class UnionFilter :public DataFilter
@@ -35,7 +36,8 @@ namespace CSVDatabase
 			}type;
 			DataFilter* copy() const;
 			const TableHeader getHeader() const;
-			const bool verify(const vector<CSVOperate::CSVData>& datas) const;
+			void updateHeader(TableHeader header);
+			const bool verify(const vector<csvop::CSVData>& datas) const;
 			~UnionFilter();
 			UnionFilter(const DataFilter& filter, const DataFilter& filter2, Type type);
 			UnionFilter(const DataFilter& filter, Type type);
@@ -43,7 +45,7 @@ namespace CSVDatabase
 			UnionFilter(const VerifyFilter&);
 
 			UnionFilter(const FilterGetter& getter);
-			UnionFilter(CSVOperate::CSVData);
+			UnionFilter(csvop::CSVData);
 			UnionFilter(int);
 			UnionFilter(double);
 			UnionFilter(wstring);
@@ -65,7 +67,8 @@ namespace CSVDatabase
 			}type;
 			DataFilter* copy() const;
 			const TableHeader getHeader() const;
-			const bool verify(const vector<CSVOperate::CSVData>& datas) const;
+			void updateHeader(TableHeader header);
+			const bool verify(const vector<csvop::CSVData>& datas) const;
 			~VerifyFilter();
 			VerifyFilter(const VerifyFilter&);
 			VerifyFilter(const FilterGetter& getter);
@@ -73,18 +76,20 @@ namespace CSVDatabase
 
 		private:
 			VerifyFilter() {}
-			const FilterGetter* getter = nullptr;
-			const FilterGetter* getter2 = nullptr;
+			FilterGetter* getter = nullptr;
+			FilterGetter* getter2 = nullptr;
 		};
 
 		class FieldGetter
 		{
 		public:
-			virtual const CSVOperate::CSVData verify(const vector<CSVOperate::CSVData>& datas) const = 0;
+			virtual const csvop::CSVData verify(const vector<csvop::CSVData>& datas) const = 0;
 
 			virtual const TableHeader getHeader() const = 0;
 
 			virtual const TableHeader getNewHeader()const = 0;
+
+			virtual void updateHeader(TableHeader header) = 0;
 		};
 
 		class FilterGetter:public FieldGetter
@@ -101,17 +106,22 @@ namespace CSVDatabase
 			}type;
 			const TableHeader getHeader() const;
 			const TableHeader getNewHeader() const;
-			const vector<CSVOperate::CSVData> getUnion(const vector<CSVOperate::CSVData>& datas) const;
-			const CSVOperate::CSVData verify(const vector<CSVOperate::CSVData>& datas) const;
+			void updateHeader(TableHeader header);
+			const vector<csvop::CSVData> getUnion(const vector<csvop::CSVData>& datas) const;
+			const csvop::CSVData verify(const vector<csvop::CSVData>& datas) const;
 			FilterGetter(TableHeader header, const std::wstring& name)
 				:name(name), type(Type::SINGLE),header(header), FieldGetter() {}
 			
-			FilterGetter(CSVOperate::CSVData data)
+			FilterGetter(csvop::CSVData data)
 				:data(data), type(Type::SINGLE),isValue(true), FieldGetter() {}
 
-			FilterGetter(int data) :FilterGetter(CSVOperate::CSVData(data)) {}
+			FilterGetter(const std::wstring& data) :FilterGetter(csvop::CSVData(data)) {}
 
-			FilterGetter(double data) :FilterGetter(CSVOperate::CSVData(data)) {}
+			FilterGetter(int data) :FilterGetter(csvop::CSVData(data)) {}
+
+			FilterGetter(double data) :FilterGetter(csvop::CSVData(data)) {}
+			
+			FilterGetter(bool data) :FilterGetter(csvop::CSVData(data)) {}
 			
 			~FilterGetter();
 
@@ -122,16 +132,16 @@ namespace CSVDatabase
 			friend const FilterGetter operator&&(const FilterGetter& getter, const FilterGetter& getter2);
 		private:
 
-			FilterGetter(const FilterGetter& getter, FilterGetter* filter2,Type type)
+			FilterGetter(const FilterGetter& getter, FilterGetter* getter2,Type type)
 				: name(getter.name), header(getter.header), data(getter.data),
-				isValue(getter.isValue), isTmp(true), filter2(filter2), FieldGetter(),type(type) {}
+				isValue(getter.isValue), isTmp(true), getter2(getter2), FieldGetter(),type(type) {}
 
-			const CSVOperate::CSVData& getValue(const vector<CSVOperate::CSVData>& datas) const;
+			const csvop::CSVData& getValue(const vector<csvop::CSVData>& datas) const;
 
 			std::wstring name;
-			CSVOperate::CSVData data;
+			csvop::CSVData data;
 			TableHeader header;
-			FilterGetter* filter2 = nullptr;
+			FilterGetter* getter2 = nullptr;
 			bool isTmp = false;
 			bool isValue = false;
 
@@ -149,3 +159,5 @@ namespace CSVDatabase
 		const VerifyFilter operator!=(const FilterGetter& getter, const FilterGetter& getter2);
 	}
 }
+//typedef class CSVDatabase::Table::FilterGetter FG;
+
